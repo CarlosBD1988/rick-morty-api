@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Datos Dinámicos</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    table, th, td {
+      border: 1px solid black;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>Datos Dinámicos</h1>
+  <input type="number" id="character-id" placeholder="Ingresa el ID del personaje">
+  <button onclick="fetchData()">Obtener Datos</button>
+
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Campo</th>
+        <th>Valor</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Los datos se insertarán aquí -->
+    </tbody>
+  </table>
+
+  <script>
+    async function fetchData() {
+      const id = document.getElementById('character-id').value;
+      if (!id) {
+        alert('Por favor, ingresa un ID válido.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/character/${id}`);
+        const data = await response.json();
+
+        const tableBody = document.querySelector('#data-table tbody');
+        tableBody.innerHTML = ''; // Limpia cualquier dato anterior
+
+        function createTableRows(obj, parentKey = '') {
+          Object.entries(obj).forEach(([key, value]) => {
+            const fullKey = parentKey ? `${parentKey}.${key}` : key;
+            const row = document.createElement('tr');
+            const cellKey = document.createElement('td');
+            const cellValue = document.createElement('td');
+
+            cellKey.textContent = fullKey;
+
+            if (typeof value === 'object' && value !== null) {
+              if (Array.isArray(value)) {
+                cellValue.textContent = value.join(', '); // Combina arrays en una cadena separada por comas
+              } else {
+                cellValue.textContent = 'Objeto anidado'; // Indica que hay un objeto anidado
+                // Llama a la función recursivamente para manejar objetos anidados
+                createTableRows(value, fullKey);
+              }
+            } else {
+              cellValue.textContent = value;
+            }
+
+            row.appendChild(cellKey);
+            row.appendChild(cellValue);
+            tableBody.appendChild(row);
+          });
+        }
+
+        createTableRows(data);
+      } catch (error) {
+        console.error('Error al cargar los datos:', error);
+      }
+    }
+  </script>
+</body>
+</html>
